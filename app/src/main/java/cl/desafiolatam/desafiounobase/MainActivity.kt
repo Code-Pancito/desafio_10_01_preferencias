@@ -1,6 +1,8 @@
 package cl.desafiolatam.desafiounobase
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -12,6 +14,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var nameInput: TextInputEditText
     lateinit var advance: Button
     lateinit var container: ConstraintLayout
+    lateinit var sharedPreferences: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -19,16 +23,20 @@ class MainActivity : AppCompatActivity() {
         advance = findViewById(R.id.login_button)
         container = findViewById(R.id.container)
         setUpListeners()
+        if(!this::sharedPreferences.isInitialized)
+            initSharePreferences()
     }
 
     private fun setUpListeners() {
         advance.setOnClickListener {
             if (nameInput.text!!.isNotEmpty()) {
-                val intent: Intent
-                if (hasSeenWelcome()) {
-                    intent = Intent(this, HomeActivity::class.java)
+
+                sharedPreferences.edit().putString("activeUser", nameInput.text.toString()).apply()
+
+                val intent = if (hasSeenWelcome()) {
+                    Intent(this, HomeActivity::class.java)
                 } else {
-                    intent = Intent(this, WelcomeActivity::class.java)
+                    Intent(this, WelcomeActivity::class.java)
                 }
                 startActivity(intent)
             } else {
@@ -39,9 +47,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun hasSeenWelcome(): Boolean {
         var returnValue = false
-        //implementar este método para saber si el usuario ya ha entrado a la aplicación y ha visto
-        //la pantalla de bienvenida. Este método permite decidir que pantalla se muestra después de presionar Ingresar
-        //recorra la lista de usuarios
+
+        if(this::sharedPreferences.isInitialized)
+            returnValue = sharedPreferences.getBoolean("hasSeenWelcome", false)
+
         return returnValue
+    }
+
+    //TODO que guarde el hasSeenWelcome de cada usuario
+
+    public fun initSharePreferences() {
+        sharedPreferences = getSharedPreferences("cl.desafiolatam.desafiounobase", Context.MODE_PRIVATE)
     }
 }
